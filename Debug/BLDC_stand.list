@@ -448,33 +448,33 @@ int main(void)
  8000538:	785b      	ldrb	r3, [r3, #1]
  800053a:	2b00      	cmp	r3, #0
  800053c:	d006      	beq.n	800054c <main+0x8c>
-	  		  HAL_GPIO_WritePin(GPIOB, LED_2_Pin, GPIO_PIN_SET);
+	  	HAL_GPIO_WritePin(GPIOB, LED_2_Pin, GPIO_PIN_SET);
  800053e:	2201      	movs	r2, #1
  8000540:	f44f 6180 	mov.w	r1, #1024	; 0x400
  8000544:	480e      	ldr	r0, [pc, #56]	; (8000580 <main+0xc0>)
  8000546:	f001 fa4f 	bl	80019e8 <HAL_GPIO_WritePin>
  800054a:	e005      	b.n	8000558 <main+0x98>
-	  	  } else {
-	  		  HAL_GPIO_WritePin(GPIOB, LED_2_Pin, GPIO_PIN_RESET);
+	  } else {
+	  	HAL_GPIO_WritePin(GPIOB, LED_2_Pin, GPIO_PIN_RESET);
  800054c:	2200      	movs	r2, #0
  800054e:	f44f 6180 	mov.w	r1, #1024	; 0x400
  8000552:	480b      	ldr	r0, [pc, #44]	; (8000580 <main+0xc0>)
  8000554:	f001 fa48 	bl	80019e8 <HAL_GPIO_WritePin>
-	  	  }
+	  }
 
 	  if (HAL_state[2]){
  8000558:	4b0a      	ldr	r3, [pc, #40]	; (8000584 <main+0xc4>)
  800055a:	789b      	ldrb	r3, [r3, #2]
  800055c:	2b00      	cmp	r3, #0
  800055e:	d006      	beq.n	800056e <main+0xae>
-	  		  HAL_GPIO_WritePin(GPIOB, LED_3_Pin, GPIO_PIN_SET);
+	  	HAL_GPIO_WritePin(GPIOB, LED_3_Pin, GPIO_PIN_SET);
  8000560:	2201      	movs	r2, #1
  8000562:	f44f 6100 	mov.w	r1, #2048	; 0x800
  8000566:	4806      	ldr	r0, [pc, #24]	; (8000580 <main+0xc0>)
  8000568:	f001 fa3e 	bl	80019e8 <HAL_GPIO_WritePin>
  800056c:	e7bb      	b.n	80004e6 <main+0x26>
-	  	  } else {
-	  		  HAL_GPIO_WritePin(GPIOB, LED_3_Pin, GPIO_PIN_RESET);
+	  } else {
+	  	HAL_GPIO_WritePin(GPIOB, LED_3_Pin, GPIO_PIN_RESET);
  800056e:	2200      	movs	r2, #0
  8000570:	f44f 6100 	mov.w	r1, #2048	; 0x800
  8000574:	4802      	ldr	r0, [pc, #8]	; (8000580 <main+0xc0>)

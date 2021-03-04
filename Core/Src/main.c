@@ -125,16 +125,16 @@ int main(void)
 	  }
 
 	  if (HAL_state[1]){
-	  		  HAL_GPIO_WritePin(GPIOB, LED_2_Pin, GPIO_PIN_SET);
-	  	  } else {
-	  		  HAL_GPIO_WritePin(GPIOB, LED_2_Pin, GPIO_PIN_RESET);
-	  	  }
+	  	HAL_GPIO_WritePin(GPIOB, LED_2_Pin, GPIO_PIN_SET);
+	  } else {
+	  	HAL_GPIO_WritePin(GPIOB, LED_2_Pin, GPIO_PIN_RESET);
+	  }
 
 	  if (HAL_state[2]){
-	  		  HAL_GPIO_WritePin(GPIOB, LED_3_Pin, GPIO_PIN_SET);
-	  	  } else {
-	  		  HAL_GPIO_WritePin(GPIOB, LED_3_Pin, GPIO_PIN_RESET);
-	  	  }
+	  	HAL_GPIO_WritePin(GPIOB, LED_3_Pin, GPIO_PIN_SET);
+	  } else {
+	  	HAL_GPIO_WritePin(GPIOB, LED_3_Pin, GPIO_PIN_RESET);
+	  }
 
 
 
