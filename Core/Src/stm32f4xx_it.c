@@ -56,9 +56,10 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-
+extern TIM_HandleTypeDef htim1;
 /* USER CODE BEGIN EV */
-
+unsigned short cnt=0;
+unsigned short cnt1=0;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -198,6 +199,72 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles TIM1 update interrupt and TIM10 global interrupt.
+  */
+void TIM1_UP_TIM10_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 0 */
+
+  /* USER CODE END TIM1_UP_TIM10_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim1);
+  /* USER CODE BEGIN TIM1_UP_TIM10_IRQn 1 */
+
+
+
+
+
+
+ switch(5) { // cnt // 5 ok
+
+ case 1:
+	 HALL_U = HAL_GPIO_ReadPin(HALL_1_GPIO_Port, HALL_1_Pin);
+	 HALL_V = HAL_GPIO_ReadPin(HALL_2_GPIO_Port, HALL_2_Pin);
+	 HALL_W = HAL_GPIO_ReadPin(HALL_3_GPIO_Port, HALL_3_Pin);
+	 break;
+ case 2:
+	HALL_V = HAL_GPIO_ReadPin(HALL_1_GPIO_Port, HALL_1_Pin);
+	HALL_U = HAL_GPIO_ReadPin(HALL_2_GPIO_Port, HALL_2_Pin);
+	HALL_W = HAL_GPIO_ReadPin(HALL_3_GPIO_Port, HALL_3_Pin);
+	break;
+ case 3:
+ 	HALL_U = HAL_GPIO_ReadPin(HALL_1_GPIO_Port, HALL_1_Pin);
+ 	HALL_W = HAL_GPIO_ReadPin(HALL_2_GPIO_Port, HALL_2_Pin);
+ 	HALL_V = HAL_GPIO_ReadPin(HALL_3_GPIO_Port, HALL_3_Pin);
+ 	break;
+ case 4:
+ 	HALL_W = HAL_GPIO_ReadPin(HALL_1_GPIO_Port, HALL_1_Pin);
+ 	HALL_V = HAL_GPIO_ReadPin(HALL_2_GPIO_Port, HALL_2_Pin);
+ 	HALL_U = HAL_GPIO_ReadPin(HALL_3_GPIO_Port, HALL_3_Pin);
+ 	break;
+ case 5:
+ 	HALL_W = HAL_GPIO_ReadPin(HALL_1_GPIO_Port, HALL_1_Pin);
+ 	HALL_U = HAL_GPIO_ReadPin(HALL_2_GPIO_Port, HALL_2_Pin);
+ 	HALL_V = HAL_GPIO_ReadPin(HALL_3_GPIO_Port, HALL_3_Pin);
+ 	break;
+ case 6:
+ 	HALL_V = HAL_GPIO_ReadPin(HALL_1_GPIO_Port, HALL_1_Pin);
+ 	HALL_W = HAL_GPIO_ReadPin(HALL_2_GPIO_Port, HALL_2_Pin);
+ 	HALL_U = HAL_GPIO_ReadPin(HALL_3_GPIO_Port, HALL_3_Pin);
+ 	break;
+
+
+ }
+ CURRENT_SEC = DPR_SEC( HALL_U, HALL_V, HALL_W);
+
+/* if(cnt > 20000){
+	 cnt=0;
+	 CURRENT_SEC++;
+ if(CURRENT_SEC==7)
+	 CURRENT_SEC=1;}
+ else
+	 cnt++;
+*/
+ PWM_BLDC_2VT(TIM1, CURRENT_PWM, CURRENT_SEC, CURRENT_DIR);
+ //PWM_BLDC_4VT(TIM1, CURRENT_PWM, CURRENT_SEC);
+  /* USER CODE END TIM1_UP_TIM10_IRQn 1 */
+}
 
 /* USER CODE BEGIN 1 */
 

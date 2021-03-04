@@ -93,7 +93,19 @@ void Error_Handler(void);
 #define HALL_3_Pin GPIO_PIN_8
 #define HALL_3_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
+void PWM_BLDC_2VT(TIM_TypeDef *Tim, float duty, unsigned short sec, unsigned short dir);
+void PWM_BLDC_4VT(TIM_TypeDef *Tim, float duty, unsigned short sec);
+unsigned short DPR_SEC(unsigned short HALL_U, unsigned short HALL_V,unsigned short HALL_W);
+void Device_PWM_Channels_ON(void);
+void Device_PWM_Channels_OFF(void);
 
+
+float CURRENT_PWM;
+unsigned short CURRENT_DIR;
+unsigned short CURRENT_SEC;
+unsigned short HALL_U;
+unsigned short HALL_V;
+unsigned short HALL_W;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

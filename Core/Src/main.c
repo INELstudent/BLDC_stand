@@ -67,6 +67,7 @@ static void MX_TIM1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+
 /* USER CODE END 0 */
 
 /**
@@ -104,6 +105,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   HAL_TIM_Base_Start_IT(&htim1);
+  Device_PWM_Channels_ON();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -354,7 +357,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_CENTERALIGNED1;
-  htim1.Init.Period = 8400;
+  htim1.Init.Period = 8400-1;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -461,6 +464,267 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+unsigned short DPR_SEC(unsigned short HALL_U, unsigned short HALL_V,unsigned short HALL_W){
+
+
+	unsigned short SEC;
+
+	if ((HALL_U) == 0 && (HALL_V) == 0 && (HALL_W) == 0)
+		SEC = 0;
+	else if ((HALL_U) == 0 && (HALL_V) == 0 && (HALL_W) == 1) // 1
+		SEC = 3;
+	else if ((HALL_U) == 0 && (HALL_V) == 1 && (HALL_W) == 0) // 2
+		SEC = 1;
+	else if ((HALL_U) == 0 && (HALL_V) == 1 && (HALL_W) == 1) // 3
+		SEC = 2;
+	else if ((HALL_U) == 1 && (HALL_V) == 0 && (HALL_W) == 0) // 4
+		SEC = 5;
+	else if ((HALL_U) == 1 && (HALL_V) == 0 && (HALL_W) == 1) // 5
+		SEC = 4;
+	else if ((HALL_U) == 1 && (HALL_V) == 1 && (HALL_W) == 0) // 6
+		SEC = 6;
+	else if ((HALL_U) == 1 && (HALL_V) == 1 && (HALL_W) == 1)
+		SEC = 0;
+
+	return SEC;
+}
+
+
+void PWM_BLDC_4VT(TIM_TypeDef *Tim, float duty, unsigned short sec) {
+	// 4 VT PWM
+	int tmp = (unsigned short) (0.5f * (float) (Tim->ARR) * (1.0f + duty));
+	int tmp1 = (Tim->ARR - tmp);
+	//		IN		 |	  STM32
+	//	VT1	VT3	VT5  |	1	2	3
+	//	 U	 V	 W   |	U	V	W
+	//	VT2	VT4	VT6  |	1n	2n	3n
+
+	switch (sec) {
+
+	case 1: // VT1 & VT4 < 0 || VT3 & VT2 > 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC1E | TIM_CCER_CC1NE |TIM_CCER_CC2E | TIM_CCER_CC2NE);
+		Tim->CCR1 = tmp;
+		Tim->CCR2 = tmp1;
+		Tim->CCR3 = 0;
+		break;
+
+	case 2: // VT1 & VT6 < 0 || VT5 & VT2 > 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC1E | TIM_CCER_CC1NE |TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCR1 = tmp;
+		Tim->CCR3 = tmp1;
+		Tim->CCR2 = 0;
+
+		break;
+
+	case 3: // VT3 & VT6 < 0 || VT5 & VT4 > 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC2E | TIM_CCER_CC2NE |TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCR2 = tmp;
+		Tim->CCR3 = tmp1;
+		Tim->CCR1 = 0;
+		break;
+	case 4: // VT3 & VT2 < 0 || VT1 & VT4 > 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC1E | TIM_CCER_CC1NE |TIM_CCER_CC2E | TIM_CCER_CC2NE);
+		Tim->CCR2 = tmp;
+		Tim->CCR1 = tmp1;
+		Tim->CCR3 = 0;
+		break;
+	case 5: // VT5 & VT2 < 0 || VT1 & VT6 > 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC1E | TIM_CCER_CC1NE |TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCR3 = tmp;
+		Tim->CCR1 = tmp1;
+		Tim->CCR2 = 0;
+		break;
+	case 6: // VT5 & VT4 < 0 || VT3 & VT6 > 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC2E | TIM_CCER_CC2NE |TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCR3 = tmp;
+		Tim->CCR2 = tmp1;
+		Tim->CCR1 = 0;
+		break;
+	default:
+		Tim->CCR1 = 0;
+		Tim->CCR2 = 0;
+		Tim->CCR3 = 0;
+		break;
+	}
+
+}
+
+
+void PWM_BLDC_2VT(TIM_TypeDef *Tim, float duty, unsigned short sec,
+		unsigned short dir) {
+	// 2 VT PWM
+	int tmp = (unsigned short) ((float) (Tim->ARR) * (duty));
+
+	//		IN		 |	  STM32
+	//	VT1	VT3	VT5  |	1	2	3
+	//	 U	 V	 W   |	U	V	W
+	//	VT2	VT4	VT6  |	1n	2n	3n
+
+	if (dir) {
+		switch (sec) {
+
+		case 4: // VT1 & VT4 < 0
+			Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+					| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+			Tim->CCER |= (TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2NE);
+			Tim->CCR1 = tmp;
+			Tim->CCR2 = Tim->ARR;
+			Tim->CCR3 = 0;
+			break;
+
+		case 5: // VT1 & VT6 < 0
+			Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+					| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+			Tim->CCER |= (TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC3NE);
+			Tim->CCR1 = tmp;
+			Tim->CCR3 = Tim->ARR;
+			Tim->CCR2 = 0;
+
+			break;
+
+		case 6: // VT3 & VT6 < 0
+			Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+					| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+			Tim->CCER |= (TIM_CCER_CC2E | TIM_CCER_CC2NE | TIM_CCER_CC3NE);
+			Tim->CCR2 = tmp;
+			Tim->CCR3 = Tim->ARR;
+			Tim->CCR1 = 0;
+			break;
+		case 1: // VT3 & VT2 < 0
+			Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+					| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+			Tim->CCER |= (TIM_CCER_CC2E | TIM_CCER_CC2NE | TIM_CCER_CC1NE);
+			Tim->CCR2 = tmp;
+			Tim->CCR1 = Tim->ARR;
+			Tim->CCR3 = 0;
+			break;
+		case 2: // VT5 & VT2 < 0
+			Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+					| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+			Tim->CCER |= (TIM_CCER_CC3E | TIM_CCER_CC3NE | TIM_CCER_CC1NE);
+			Tim->CCR3 = tmp;
+			Tim->CCR1 = Tim->ARR;
+			Tim->CCR2 = 0;
+			break;
+		case 3: // VT5 & VT4 < 0
+			Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+					| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+			Tim->CCER |= (TIM_CCER_CC3E | TIM_CCER_CC3NE | TIM_CCER_CC2NE);
+			Tim->CCR3 = tmp;
+			Tim->CCR2 = Tim->ARR;
+			Tim->CCR1 = 0;
+			break;
+		default:
+			Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+					| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+			Tim->CCR1 = 0;
+			Tim->CCR2 = 0;
+			Tim->CCR3 = 0;
+			break;
+		}
+	} else {
+		switch (sec) {
+		case 1:
+		// VT1 & VT4 < 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2NE);
+		Tim->CCR1 = tmp;
+		Tim->CCR2 = Tim->ARR;
+		Tim->CCR3 = 0;
+		break;
+
+		case 2:
+		// VT1 & VT6 < 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC3NE);
+		Tim->CCR1 = tmp;
+		Tim->CCR3 = Tim->ARR;
+		Tim->CCR2 = 0;
+
+		break;
+
+		case 3:
+		// VT3 & VT6 < 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC2E | TIM_CCER_CC2NE | TIM_CCER_CC3NE);
+		Tim->CCR2 = tmp;
+		Tim->CCR3 = Tim->ARR;
+		Tim->CCR1 = 0;
+		break;
+		case 4:
+		// VT3 & VT2 < 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC2E | TIM_CCER_CC2NE | TIM_CCER_CC1NE);
+		Tim->CCR2 = tmp;
+		Tim->CCR1 = Tim->ARR;
+		Tim->CCR3 = 0;
+		break;
+		case 5:
+		// VT5 & VT2 < 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC3E | TIM_CCER_CC3NE | TIM_CCER_CC1NE);
+		Tim->CCR3 = tmp;
+		Tim->CCR1 = Tim->ARR;
+		Tim->CCR2 = 0;
+		break;
+		case 6:
+		// VT5 & VT4 < 0
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCER |= (TIM_CCER_CC3E | TIM_CCER_CC3NE | TIM_CCER_CC2NE);
+		Tim->CCR3 = tmp;
+		Tim->CCR2 = Tim->ARR;
+		Tim->CCR1 = 0;
+		break;
+		default:
+		Tim->CCER &= ~(TIM_CCER_CC1E | TIM_CCER_CC1NE | TIM_CCER_CC2E
+				| TIM_CCER_CC2NE | TIM_CCER_CC3E | TIM_CCER_CC3NE);
+		Tim->CCR1 = 0;
+		Tim->CCR2 = 0;
+		Tim->CCR3 = 0;
+		break;
+	}
+
+}
+
+}
+
+
+
+
+void Device_PWM_Channels_ON(void)
+{
+TIM_CCxChannelCmd(TIM1, TIM_CHANNEL_1, TIM_CCx_ENABLE | TIM_CCxN_ENABLE);
+TIM_CCxChannelCmd(TIM1, TIM_CHANNEL_2, TIM_CCx_ENABLE | TIM_CCxN_ENABLE);
+TIM_CCxChannelCmd(TIM1, TIM_CHANNEL_3, TIM_CCx_ENABLE | TIM_CCxN_ENABLE);
+TIM1->BDTR|=(TIM_BDTR_MOE);
+}
+
+void Device_PWM_Channels_OFF(void)
+{
+TIM_CCxChannelCmd(TIM1, TIM_CHANNEL_1, TIM_CCx_DISABLE | TIM_CCxN_DISABLE);
+TIM_CCxChannelCmd(TIM1, TIM_CHANNEL_2, TIM_CCx_DISABLE | TIM_CCxN_DISABLE);
+TIM_CCxChannelCmd(TIM1, TIM_CHANNEL_3, TIM_CCx_DISABLE | TIM_CCxN_DISABLE);
+TIM1->BDTR &= ~(TIM_BDTR_MOE);
+TIM1->BDTR &= ~(TIM_BDTR_OSSI);
+}
 /* USER CODE END 4 */
 
 /**
