@@ -22,5 +22,15 @@ OBJCOPY_BIN :=
 SUBDIRS := \
 Core/Src \
 Core/Startup \
+DSP/Source/BasicMathFunctions \
+DSP/Source/CommonTables \
+DSP/Source/ComplexMathFunctions \
+DSP/Source/ControllerFunctions \
+DSP/Source/FastMathFunctions \
+DSP/Source/FilteringFunctions \
+DSP/Source/MatrixFunctions \
+DSP/Source/StatisticsFunctions \
+DSP/Source/SupportFunctions \
+DSP/Source/TransformFunctions \
 Drivers/STM32F4xx_HAL_Driver/Src \
 

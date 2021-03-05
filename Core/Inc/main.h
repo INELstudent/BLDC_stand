@@ -32,7 +32,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "arm_math.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -93,19 +93,51 @@ void Error_Handler(void);
 #define HALL_3_Pin GPIO_PIN_8
 #define HALL_3_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
+//################  SpaceVector_PWM  ###################
+#define sin_0    0.0f
+#define cos_0    1.0f
+
+#define sin_60   0.8660254037844f
+#define cos_60   0.5f
+
+#define sin_120  sin_60
+#define cos_120 -cos_60
+
+#define sin_180  sin_0
+#define cos_180 -cos_0
+
+#define sin_240 -sin_60
+#define cos_240 -cos_60
+
+#define sin_300 -sin_60
+#define cos_300  cos_60
+
+//Function protypes
 void PWM_BLDC_2VT(TIM_TypeDef *Tim, float duty, unsigned short sec, unsigned short dir);
 void PWM_BLDC_4VT(TIM_TypeDef *Tim, float duty, unsigned short sec);
 unsigned short DPR_SEC(unsigned short HALL_U, unsigned short HALL_V,unsigned short HALL_W);
 void Device_PWM_Channels_ON(void);
 void Device_PWM_Channels_OFF(void);
+void Device_SVPWM(TIM_TypeDef *Tim, float A, float B);
+void Device_Polar_to_AB(float Amp, float Rad, float *Bufer_A_B);
 
-
+//Global variables
 float CURRENT_PWM;
 unsigned short CURRENT_DIR;
 unsigned short CURRENT_SEC;
 unsigned short HALL_U;
 unsigned short HALL_V;
 unsigned short HALL_W;
+
+float El_Angle;
+float Delta_Angle;
+float Amp;
+float Freq;
+float AngleSpeed;
+float zadFreq;
+float flag;
+float Bufer_A_B[2];
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

@@ -62,6 +62,7 @@ static void MX_DAC_Init(void);
 static void MX_TIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -103,6 +104,11 @@ int main(void)
   MX_DAC_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  //User init
+
+  flag = 0.01f;
+  Amp = 0.2f;
+  zadFreq = 0;
 
   HAL_TIM_Base_Start_IT(&htim1);
   Device_PWM_Channels_ON();
@@ -725,6 +731,170 @@ TIM_CCxChannelCmd(TIM1, TIM_CHANNEL_3, TIM_CCx_DISABLE | TIM_CCxN_DISABLE);
 TIM1->BDTR &= ~(TIM_BDTR_MOE);
 TIM1->BDTR &= ~(TIM_BDTR_OSSI);
 }
+
+void Device_SVPWM(TIM_TypeDef *Tim, float A, float B)
+{
+
+static float bufer[2];
+
+float f_sin      = 0.0f;
+float f_sin_0_60 = 0.0f;
+
+float f_cos      = 0.0f;
+float f_cos_0_60 = 0.0f;
+
+static float module = 0.0f;
+
+float Tb1 = 0.0f;
+float Tb2 = 0.0f;
+float T0  = 0.0f;
+
+float t1 = 0.0f;
+float t2 = 0.0f;
+float t3  = 0.0f;
+
+bufer[0]=A;
+bufer[1]=B;
+arm_cmplx_mag_f32(bufer,&module,2);
+
+f_sin = bufer[1] / module;
+f_cos = bufer[0] / module;
+
+if(module==0)
+{
+Tim->CCR1 = (int)Tim->ARR/2;
+Tim->CCR2 = (int)Tim->ARR/2;
+Tim->CCR3 = (int)Tim->ARR/2;
+}
+//########################################### 1
+ else if((f_sin >= sin_0) && (f_sin < sin_60)  &&\
+    (f_cos > cos_60) && (f_cos <= cos_0) )
+ {
+
+ f_sin_0_60 = f_sin;
+ f_cos_0_60 = f_cos;
+
+ Tb1 = module * (sin_60 * f_cos_0_60 - cos_60 * f_sin_0_60);
+ Tb2 = module * f_sin_0_60;
+ T0  = 0.5f*(1.0f-Tb1-Tb2);
+
+ t1 = Tb1+Tb2+T0;
+ t2 = Tb2+T0;
+ t3 = Tb1+T0;
+
+Tim->CCR1 = (int)(Tim->ARR*t1+0);
+Tim->CCR2 = (int)(Tim->ARR*t2+0);
+Tim->CCR3 = (int)(Tim->ARR*T0+0);
+
+ }
+ //###########################################2
+  else if((f_sin >= sin_60)   &&\
+    (f_cos > cos_120) && (f_cos <= cos_60) )
+ {
+
+ f_sin_0_60 = f_sin * cos_60 - sin_60 * f_cos;
+ f_cos_0_60 = f_cos * cos_60 + f_sin * sin_60;
+
+ Tb1 = module * (sin_60 * f_cos_0_60 - cos_60 * f_sin_0_60);
+ Tb2 = module * f_sin_0_60;
+ T0  = 0.5f*(1.0f-Tb1-Tb2);
+
+ t1 = Tb1+Tb2+T0;
+ t2 = Tb2+T0;
+ t3 = Tb1+T0;
+
+Tim->CCR1 = (int)(Tim->ARR*t3+0);
+Tim->CCR2 = (int)(Tim->ARR*t1+0);
+Tim->CCR3 = (int)(Tim->ARR*T0+0);
+ }
+ //###########################################3
+ else if((f_sin > sin_180) && (f_sin <= sin_120)  &&\
+    (f_cos > cos_180) && (f_cos <= cos_120) )
+ {
+
+ f_sin_0_60 = f_sin * cos_120 - sin_120 * f_cos;
+ f_cos_0_60 = f_cos * cos_120 + f_sin * sin_120;
+
+ Tb1 = module * (sin_60 * f_cos_0_60 - cos_60 * f_sin_0_60);
+ Tb2 = module * f_sin_0_60;
+ T0  = 0.5f*(1.0f-Tb1-Tb2);
+
+ t1 = Tb1+Tb2+T0;
+ t2 = Tb2+T0;
+ t3 = Tb1+T0;
+
+Tim->CCR1 = (int)(Tim->ARR*T0+0);
+Tim->CCR2 = (int)(Tim->ARR*t1+0);
+Tim->CCR3 = (int)(Tim->ARR*t2+0);
+ }
+ //###########################################4
+  else if((f_sin > sin_240) && (f_sin <= sin_180)  &&\
+    (f_cos >= cos_180) && (f_cos < cos_240) )
+ {
+
+ f_sin_0_60 = f_sin * cos_180 - sin_180 * f_cos;
+ f_cos_0_60 = f_cos * cos_180 + f_sin * sin_180;
+
+ Tb1 = module * (sin_60 * f_cos_0_60 - cos_60 * f_sin_0_60);
+ Tb2 = module * f_sin_0_60;
+ T0  = 0.5f*(1.0f-Tb1-Tb2);
+
+ t1 = Tb1+Tb2+T0;
+ t2 = Tb2+T0;
+ t3 = Tb1+T0;
+
+Tim->CCR1 = (int)(Tim->ARR*T0+0);
+Tim->CCR2 = (int)(Tim->ARR*t3+0);
+Tim->CCR3 = (int)(Tim->ARR*t1+0);
+ }
+ //###########################################5
+  else if( (f_sin <=sin_240)  &&\
+    (f_cos >= cos_240) && (f_cos < cos_300) )
+ {
+ f_sin_0_60 = f_sin * cos_240 - sin_240 * f_cos;
+ f_cos_0_60 = f_cos * cos_240 + f_sin * sin_240;
+
+ Tb1 = module * (sin_60 * f_cos_0_60 - cos_60 * f_sin_0_60);
+ Tb2 = module * f_sin_0_60;
+ T0  = 0.5f*(1.0f-Tb1-Tb2);
+
+ t1 = Tb1+Tb2+T0;
+ t2 = Tb2+T0;
+ t3 = Tb1+T0;
+
+Tim->CCR1 = (int)(Tim->ARR*t2+0);
+Tim->CCR2 = (int)(Tim->ARR*T0+0);
+Tim->CCR3 = (int)(Tim->ARR*t1+0);
+ }
+ //###########################################6
+ else if((f_sin >= sin_300) && (f_sin < sin_0)  &&\
+    (f_cos >= cos_300) && (f_cos < cos_0) )
+ {
+
+ f_sin_0_60 = f_sin * cos_300 - sin_300 * f_cos;
+ f_cos_0_60 = f_cos * cos_300 + f_sin * sin_300;
+
+ Tb1 = module * (sin_60 * f_cos_0_60 - cos_60 * f_sin_0_60);
+ Tb2 = module * f_sin_0_60;
+ T0  = 0.5f*(1.0f-Tb1-Tb2);
+
+ t1 = Tb1+Tb2+T0;
+ t2 = Tb2+T0;
+ t3 = Tb1+T0;
+
+Tim->CCR1 = (int)(Tim->ARR*t1+0);
+Tim->CCR2 = (int)(Tim->ARR*T0+0);
+Tim->CCR3 = (int)(Tim->ARR*t3+0);
+ }
+
+}
+
+void Device_Polar_to_AB(float Amp, float Rad, float *Bufer_A_B)
+{
+*Bufer_A_B     = Amp * arm_cos_f32(Rad);
+*(Bufer_A_B+1) = Amp * arm_sin_f32(Rad);
+}
+
 /* USER CODE END 4 */
 
 /**

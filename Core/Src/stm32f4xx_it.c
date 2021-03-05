@@ -259,14 +259,54 @@ void TIM1_UP_TIM10_IRQHandler(void)
  if(CURRENT_SEC==7)
 	 CURRENT_SEC=1;}
  else
-	 cnt++;
-*/
+	 cnt++;*/
+
  PWM_BLDC_2VT(TIM1, CURRENT_PWM, CURRENT_SEC, CURRENT_DIR);
  //PWM_BLDC_4VT(TIM1, CURRENT_PWM, CURRENT_SEC);
+
+/*
+ if(cnt < 19999){
+   cnt++;
+ }
+ else {
+
+   if((Freq < zadFreq) && (Freq >= 0)){
+     Freq = Freq + flag;
+   }
+   else if((Freq > zadFreq) && (Freq > 0)){
+       Freq = Freq - flag;
+   }
+ cnt = 0;
+ }
+
+ if (Freq <= 0.0f){
+     Freq = 0.0f;
+   }
+
+ if (Freq >= 250.0f){
+     Freq = 250.0f;
+   }
+
+ AngleSpeed = 2.0f*PI*Freq;
+ Delta_Angle = AngleSpeed*0.00005f;
+
+ Device_Polar_to_AB(Amp, El_Angle, Bufer_A_B);
+
+ El_Angle+=Delta_Angle;
+ if(El_Angle>=8*PI) El_Angle = 0.0f;
+
+ Device_SVPWM(TIM1, Bufer_A_B[0], Bufer_A_B[1]);
+*/
+
+
+
   /* USER CODE END TIM1_UP_TIM10_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
+
+
+
 
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
